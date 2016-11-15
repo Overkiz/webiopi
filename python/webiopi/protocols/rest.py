@@ -164,7 +164,10 @@ class RESTHandler():
         # Single GPIO getter
         elif relativePath.startswith("GPIO/"):
             return self.callDeviceFunction("GET", relativePath)
-        
+        #ADDED OVK
+        elif relativePath.startswith("GPIOX/"):
+            return self.callDeviceFunction("GET", relativePath)
+        #ADDED OVK
         elif relativePath == "devices/*":
             return (200, manager.getDevicesJSON(compact), M_JSON)
         
@@ -182,7 +185,10 @@ class RESTHandler():
 
         if relativePath.startswith("GPIO/"):
             return self.callDeviceFunction("POST", relativePath)
-                
+        #ADDED OVK
+        elif relativePath.startswith("GPIOX/"):
+            return self.callDeviceFunction("POST", relativePath)
+        #ADDED OVK
         elif relativePath.startswith("macros/"):
             paths = relativePath.split("/")
             mname = paths[1]

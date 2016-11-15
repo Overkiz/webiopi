@@ -16,8 +16,20 @@
 #24 = IN
 #25 = OUT 0
 
+#------ADDED OVK---------------------------------------------------------#
+
+[GPIOX]
+# Initialize following extended GPIOXs with given function and optional value
+# This is used during WebIOPi start process
+cards = card2
+
 #------------------------------------------------------------------------#
 
+[~GPIOX]
+# Reset following extended GPIOXs with given function and optional value
+# This is used at the end of WebIOPi stop process
+
+#-------ADDED OVK--------------------------------------------------------#
 [SCRIPTS]
 # Load custom scripts syntax :
 # name = sourcefile

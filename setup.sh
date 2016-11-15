@@ -37,6 +37,7 @@ for python in $SEARCH; do
 			# Install required dev header and setuptools
 			echo "Trying to install $python-dev using apt-get"
 			apt-get install -y $python-dev $python-setuptools
+			apt-get install -y $python-serial
 		fi
 
 		# Try to compile and install for the current python

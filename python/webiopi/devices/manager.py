@@ -35,6 +35,10 @@ def addDeviceInstance(name, dev, args):
         if callable(func) and hasattr(func, "routed"):
             if name == "GPIO":
                 logger.debug("Mapping %s.%s to REST %s /GPIO/%s" % (dev, att, func.method, func.path))
+            #Added OVK
+            if name == "GPIOX":
+                logger.debug("Mapping %s.%s to REST %s /GPIOX/%s" % (dev, att, func.method, func.path))
+            #Added OVK
             else:
                 logger.debug("Mapping %s.%s to REST %s /devices/%s/%s" % (dev, att, func.method, name, func.path))
             funcs[func.method][func.path] = func
@@ -42,6 +46,10 @@ def addDeviceInstance(name, dev, args):
     DEVICES[name] = {'device': dev, 'functions': funcs}
     if name == "GPIO":
         logger.info("GPIO - Native mapped to REST API /GPIO")
+    #Added OVK
+    if name == "GPIOX":
+        logger.info("GPIOX - Native mapped to REST API /GPIOX")
+    #Added OVK
     else:
         logger.info("%s - %s mapped to REST API /devices/%s" % (dev.__family__(), dev, name))
         
@@ -61,6 +69,10 @@ def getDevicesJSON(compact=False):
     for devName in DEVICES:
         if devName == "GPIO":
             continue
+        #ADDED OVK
+        if devName == "GPIOX":
+            continue
+        #ADDED OVK
         instance = DEVICES[devName]["device"]
         if hasattr(instance, "__family__"):
             family = instance.__family__()

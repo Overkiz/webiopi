@@ -25,6 +25,8 @@ from webiopi.protocols import rest
 from webiopi.protocols import http
 from webiopi.protocols import coap
 from webiopi.devices.digital.gpio import NativeGPIO
+#ADDED OVK
+from webiopi.devices.extendedgpio import ExtendedGPIO
 
 def getLocalIP():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -53,6 +55,16 @@ class Server():
         self.gpio.addResets(config.items("~GPIO"))
         self.gpio.setup()
         
+        #ADDED OVK
+        self.gpiox = ExtendedGPIO()
+        manager.addDeviceInstance("GPIOX", self.gpiox, [])
+        self.gpiox.addCards(config.get("GPIOX", "cards", None))
+        #TODO Add setup and reset to set initial state, if needed
+        #self.gpiox.addSetups(config.items("GPIOX"))
+        #self.gpiox.addResets(config.items("~GPIOX"))
+        #self.gpiox.setup()
+        #ADDED OVK
+
         devices = config.items("DEVICES")
         for (name, params) in devices:
             values = params.split(" ")
@@ -77,6 +89,12 @@ class Server():
         self.restHandler.device_mapping = config.getboolean("REST", "device-mapping", True)
         self.gpio.post_value = config.getboolean("REST", "gpio-post-value", True)
         self.gpio.post_function = config.getboolean("REST", "gpio-post-function", True)
+
+        #ADDED OVK
+        self.gpiox.post_value = True
+        self.gpiox.post_function = True
+        #ADDED OVK
+
         exports = config.get("REST", "gpio-export", None)
         if exports != None:
             self.gpio.export = [int(s) for s in exports.split(",")]
