@@ -17,6 +17,8 @@ def	getFunctionFromStr(functionStr):
 		function = GPIO.IN
 	elif functionStr == "OPP" :
 		function = GPIO.OUT
+	elif functionStr == "OOD" :
+		function = GPIO.OUT
 	else :
 		raise Exception("Unknown function")
 	return function
@@ -26,7 +28,7 @@ def	getStrFromFunction(function):
 	if function == GPIO.IN :
 		functionStr = "INP"
 	elif function == GPIO.OUT :
-		functionStr = "OPP"
+		functionStr = "OOD"
 	else :
 		raise Exception("POSTing function unknown")
 	return functionStr
