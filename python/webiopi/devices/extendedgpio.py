@@ -31,13 +31,8 @@ class ExtendedGPIO(GPIOPort):
 		for name in cardnames.split(" "):
 			card = {}
 			# Path to the USB serial device : /dev/ttyACM...
-			path = ExtendedComm.findCard(name)
-			if path == "":
-				debug("Card %s is not connected to this device" % name)
-				continue
 			card['name'] = name
-			card['comm'] = ExtendedComm(path)
-			card['gpios'] = card['comm'].connect()
+			card['comm'] = ExtendedComm(name)
 			self.cards.append(card)
 
 	def findCard(self, cardname):
@@ -94,7 +89,6 @@ class ExtendedGPIO(GPIOPort):
 		return self._getFunction_(gpio)
 
 	def _digitalRead_(self,card, channel):
-		self.getGpio(card, channel)
 		return card['comm'].read(channel)
 
 	@request("GET", "%(card)s/count")
@@ -140,6 +134,5 @@ class ExtendedGPIO(GPIOPort):
 		self.checkPostingFunctionAllowed()
 		self.checkDigitalValue(value)
 		card = self.findCard(cardname)
-		self.getGpio(card, channel)
 		self.__digitalWrite__(card, channel, value)
 		return self._digitalRead_(card, channel)

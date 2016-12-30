@@ -34,10 +34,20 @@ def	getStrFromFunction(function):
 	return functionStr
 
 class ExtendedComm():
-	def __init__(self, port):
+	cardname=""
+	
+	def __init__(self, cardname):
+		self.cardname = cardname
 		self.ser = serial.Serial()
 		self.ser.baudrate = 230400
-		self.ser.port = port
+		self.ser.port = ""
+
+	def _findPort(self):
+		path = self.findCard()
+		if path == "":
+			debug("Card %s is not connected to this device" % self.cardname)
+		else:
+			self.ser.port = path
 
 	def _write(self, message):
 		self.ser.write(("%s\r" % message).encode('ascii'))
@@ -46,6 +56,17 @@ class ExtendedComm():
 		while self.ser.inWaiting() > 0:
 			out += self.ser.read(1).decode('ascii')
 		return out
+
+	def _connect(self):
+		self._findPort()
+		try:
+			self.ser.open()
+		except:
+			debug("Error connecting to card %s on port %s" %(self.cardname, self.ser.port)) 
+		
+	def _disconnect(self):
+		self.ser.close()
+		self.ser.port = ""
 
 	def connect(self):
 		debug("Connect %s for device id %s" %(self.ser.baudrate, self.ser.port))
@@ -58,13 +79,16 @@ class ExtendedComm():
 				temp = line.split(" ")
 				dev = {"name": temp[0], "function": getFunctionFromStr(temp[1]), "value": temp[4]}
 				devices.append(dev)
+		self.ser.close()
 		return devices
 
 	def disconnect(self):
-		debug("Disconnect from %s" %(self.ser.port))
-		self.ser.close()
+		debug("Disconnect from %s" %self.cardname)
 
 	def read(self, channel):
+		if self._connect() == -1 :
+			return -1
+		
 		out = ''
 		debug("read gpio %s" % channel)
 		out = self._write("GET %s" % channel)
@@ -75,17 +99,27 @@ class ExtendedComm():
 		elif out.startswith("*KO*"):
 			debug("READ GPIOX KO : %s" % out)
 			#Raise an error
+		
+		self.ser.close()
+		self._disconnect()
 		return value
 
 	def write(self, channel, value):
+		if self._connect() == -1 :
+			return -1
+			
 		debug ("write gpio %s, with value %d" % (channel, value))
 		out = self._write("SET %s %d" % (channel,value))
 
 		if out.startswith("*KO*"):
 			debug("WRITE GPIOX KO : %s" % out)
 			#TODO Raise error
+		self._disconnect()
 
 	def setfunction(self, channel, function):
+		if self._connect() == -1 :
+			return -1
+			
 		out = self._write("INIT %s SET %s NO" % (channel,getStrFromFunction(function)))
 		time.sleep(1)
 		while self.ser.inWaiting() > 0:
@@ -93,8 +127,10 @@ class ExtendedComm():
 		if out.startswith("*KO*"):
 			debug("READ GPIOX KO : %s" % out)
 			#Raise an error
+		self._disconnect()
 
-	def findCard(stid):
+	def findCard(self):
+	
 		ser = serial.Serial()
 		ser.baudrate = 230400
 		for port in glob.glob("/dev/ttyACM*"):
@@ -108,7 +144,7 @@ class ExtendedComm():
 
 			if out.startswith("*OK*"):
 				value = out.split(":")[1].rstrip()
-				if(value == stid):
+				if(value == self.cardname):
 					ser.close()
 					return port
 				else:
