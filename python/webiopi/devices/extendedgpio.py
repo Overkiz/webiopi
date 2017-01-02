@@ -136,3 +136,11 @@ class ExtendedGPIO(GPIOPort):
 		card = self.findCard(cardname)
 		self.__digitalWrite__(card, channel, value)
 		return self._digitalRead_(card, channel)
+
+	@request("POST", "%(cardname)s/%(channel)s/trigger/%(value)d/duration/%(timems)d")
+	@response("%d")
+	def digitalTrigger(self, cardname, channel, value, timems):
+		card = self.findCard(cardname)
+		card['comm'].trigger(channel, value, timems)
+		return 1
+
