@@ -36,28 +36,46 @@ def	getStrFromFunction(function):
 def findCard(name):
 	ser = serial.Serial()
 	ser.baudrate = 230400
+	ser.timeout = 2
+	ser.write_timeout = 2		
 	for port in glob.glob("/dev/ttyACM*"):
 		ser.port = port
+		debug('DEBUG port : %s ; name : %s' %(port, name))
 		ser.open()
-		ser.write(("GETNAME\r").encode('ascii'))
 		time.sleep(1)
-		out=''
-		while ser.inWaiting() > 0:
-			out += ser.read(1).decode('ascii')
+		ser.flushInput()
+		ser.flushOutput()
+		for i in range(5):
+			try:
+				ser.write(("GETNAME\r").encode('ascii'))
+				time.sleep(0.01)
+			except SerialTimeoutException:
+				debug('ERROR timeoutException')
+			out=""
+			while ser.inWaiting() > 0:
+				out += ser.read(1).decode('ascii', 'ignore')
+			debug('DEBUG response %s out : %s' %(i, out))
 
-		if out.startswith("*OK*"):
-			value = out.split(":")[1].rstrip()
-			if(value == name):
-				ser.close()
-				return port
-			else:
-				ser.close()
-				continue
-		elif out.startswith("*KO*"):
-			debug("READ GPIOX KO : %s" % out)
-			ser.close()
+			if out.find("*OK*") != -1:
+				value = out.split(":")[1].rstrip()
+				if(value == name):
+					# Turn the green led on
+					ser.write(("SET PE15 1\r").encode('ascii'))
+					ser.close()
+					debug("EXIT OK card found !")# : %s" % out)
+					return port
+				else:
+					debug("DEBUG OK but continue")# : %s" % out)
+					break
+					
+			#elif out.find("*KO*") != -1:
+			#	debug("ERROR KO : %s" % out)
+			#ser.close()
 			#Raise an error
-			return ""
+			#return ""
+		debug("DEBUG close port : %s" % ser.port)
+		ser.close()
+	return ""
 
 class ExtendedComm():
 	cardname=""
@@ -84,8 +102,12 @@ class ExtendedComm():
 			debug("Error connecting to card %s on port %s" %(self.cardname, self.ser.port)) 
 		
 	def _disconnect(self):
-		self.ser.close()
-		self.ser.port = ""
+		debug("Disconnect from port = %s" %self.ser.port)
+		if self.ser.port != "":
+			# Turn the green led off
+			self.ser.write(("SET PE15 0\r").encode('ascii'))
+			self.ser.close()
+			self.ser.port = ""
 
 	def connect(self):
 		debug("Connect %s for device id %s" %(self.ser.baudrate, self.ser.port))
@@ -103,6 +125,7 @@ class ExtendedComm():
 
 	def disconnect(self):
 		debug("Disconnect from %s" %self.cardname)
+		self._disconnect()
 
 	def read(self, channel):
 		
